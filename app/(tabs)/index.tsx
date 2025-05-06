@@ -1,22 +1,27 @@
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-
+import Header from '../../components/Header/index';
 export default function HomeScreen() {
   const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>⚽ Welcome Juggling Legends!</Text>
+      <View style={styles.titleContainer}>
+        <Header />
+        <Text style={styles.title}>Hey name, let's get juggling! ⚽</Text>
+      </View>
 
-      <Button
-        title='Start Juggling Session'
-        onPress={() => router.push('/leaderboard')}
-      />
-      <View style={{ marginTop: 10 }}>
+      <View style={styles.buttonContainer}>
         <Button
-          title='View Leaderboard'
-          onPress={() => navigation.navigate('Leaderboard')}
+          title='Start Juggling Session'
+          onPress={() => router.push('/challenge')}
         />
+        <View style={{ marginTop: 12 }}>
+          <Button
+            title='View Leaderboard'
+            onPress={() => router.push('/leaderboard')}
+          />
+        </View>
       </View>
     </View>
   );
@@ -25,13 +30,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingTop: 100,
+    paddingHorizontal: 20,
+  },
+  titleContainer: {
     alignItems: 'center',
-    padding: 20,
   },
   title: {
-    fontSize: 24,
-    marginBottom: 40,
+    fontSize: 28,
+    fontWeight: 'bold',
     textAlign: 'center',
+  },
+  buttonContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
