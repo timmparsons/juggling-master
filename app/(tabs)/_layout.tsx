@@ -43,7 +43,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='challenge'
+        name='Challenge'
         options={{
           title: 'Daily Challenge',
           tabBarIcon: ({ color }) => (
@@ -52,7 +52,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='leaderboard'
+        name='Leaderboard'
         options={{
           title: 'Leaderboard',
           tabBarIcon: ({ color }) => (
@@ -61,7 +61,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='friends'
+        name='Friends'
         options={{
           title: 'Friends',
           tabBarIcon: ({ color }) => (
@@ -70,7 +70,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='profile'
+        name='Profile'
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
