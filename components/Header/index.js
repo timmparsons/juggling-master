@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const Header = () => {
   return (
     <View style={styles.container}>
-      <Text>index</Text>
-      <Text>Profile</Text>
+      <MaterialCommunityIcons name='face-man-profile' size={28} color='black' />
     </View>
   );
 };
@@ -16,8 +16,8 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     width: '100%',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16, // Optional: adds space on the sides
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    marginBottom: 10,
   },
 });

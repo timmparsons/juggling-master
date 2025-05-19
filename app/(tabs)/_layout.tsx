@@ -10,6 +10,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import CustomTabBarButton from '@/components/tabs/CustomTabBarButton';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -43,16 +44,30 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='Challenge'
+        name='challenge'
         options={{
-          title: 'Daily Challenge',
+          title: 'Challenges',
           tabBarIcon: ({ color }) => (
-            <FontAwesome name='soccer-ball-o' size={24} color={color} />
+            <MaterialCommunityIcons name='target' size={24} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name='Leaderboard'
+        name='juggle'
+        options={{
+          title: '',
+          tabBarIcon: ({ color, focused }) => (
+            <FontAwesome
+              name='soccer-ball-o'
+              size={28}
+              color={focused ? Colors[colorScheme ?? 'light'].tint : color}
+            />
+          ),
+          tabBarButton: (props) => <CustomTabBarButton {...props} />,
+        }}
+      />
+      <Tabs.Screen
+        name='leaderboard'
         options={{
           title: 'Leaderboard',
           tabBarIcon: ({ color }) => (
@@ -61,24 +76,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='Friends'
+        name='badges'
         options={{
-          title: 'Friends',
+          title: 'badges',
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 name='user-friends' size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name='Profile'
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name='face-man-profile'
-              size={24}
-              color={color}
-            />
+            <FontAwesome5 name='medal' size={24} color={color} />
           ),
         }}
       />

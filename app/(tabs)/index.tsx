@@ -9,10 +9,10 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <View style={styles.titleContainer}>
         <Header />
-        <Text style={styles.title}>Hey name, let's get juggling! ⚽</Text>
+        <Text style={styles.title}>Hey Tim, let's get juggling! ⚽</Text>
       </View>
 
-      <View style={styles.buttonContainer}>
+      {/* <View style={styles.buttonContainer}>
         <Button
           title='Start Juggling Session'
           onPress={() => router.push('/challenge')}
@@ -23,7 +23,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/leaderboard')}
           />
         </View>
-      </View>
+      </View> */}
     </View>
   );
 }

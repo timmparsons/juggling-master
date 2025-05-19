@@ -7,4 +7,8 @@ export const challenges = [
     title: 'Catch on back of neck',
     description: "This one's a little tougher.",
   },
+  {
+    title: 'Round the world',
+    description: 'Here is where others get impressed.',
+  },
 ];

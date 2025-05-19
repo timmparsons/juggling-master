@@ -20,10 +20,7 @@ const ChallengeCard = ({ title, description }: ItemProps) => {
     <View style={styles.challengeContainer}>
       <Text style={styles.challengeTitle}>{title}</Text>
       <Text style={styles.challengeDescription}>{description}</Text>
-      <Button
-        title='Join Challenge'
-        onPress={() => console.log('Catch on foot')}
-      />
+      <Button title='Learn now' onPress={() => console.log('Catch on foot')} />
     </View>
   );
 };
@@ -36,7 +33,6 @@ const Challenge = () => {
         <View style={styles.rowContainer}>
           <FlatList
             data={challenges}
-            horizontal
             renderItem={({ item }) => (
               <ChallengeCard
                 title={item.title}
@@ -44,15 +40,6 @@ const Challenge = () => {
               />
             )}
           />
-        </View>
-        <View>
-          <Text>Event</Text>
-          <Text>Juggle to 5</Text>
-          <Text>Juggle to 10</Text>
-          <Text>Juggle to 20</Text>
-          <Text>Juggle to 35</Text>
-          <Text>Juggle to 50</Text>
-          <Text>Juggle to 100</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -80,6 +67,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 9,
     marginHorizontal: 4,
+    marginBottom: 10,
   },
   challengeTitle: {
     fontSize: 20,
