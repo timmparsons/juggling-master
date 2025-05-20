@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
 } from 'react-native';
 import React from 'react';
 import { PADDING, TYPOGRAPHY } from '../../theme';
@@ -20,7 +21,10 @@ const ChallengeCard = ({ title, description }: ItemProps) => {
     <View style={styles.challengeContainer}>
       <Text style={styles.challengeTitle}>{title}</Text>
       <Text style={styles.challengeDescription}>{description}</Text>
-      <Button title='Learn now' onPress={() => console.log('Catch on foot')} />
+      <Button
+        title='Coming soon'
+        onPress={() => console.log('Catch on foot')}
+      />
     </View>
   );
 };
