@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Animated,
 } from 'react-native';
+import Podium from '@/components/Podium';
 
 type Player = {
   id: string;
@@ -54,32 +55,7 @@ export default function Leaderboard({
       <Text style={styles.title}>{title}</Text>
 
       {/* Top 3 Players */}
-      <View style={styles.top3Container}>
-        {topPlayers.map((player, index) => (
-          <Animated.View
-            key={player.id}
-            style={[styles.topPlayer, { opacity: fadeAnimRefs[index] }]}
-          >
-            <TouchableOpacity onPress={() => onPlayerPress?.(player)}>
-              {player.avatarUrl ? (
-                <Image
-                  source={{ uri: player.avatarUrl }}
-                  style={styles.topAvatar}
-                />
-              ) : (
-                <View style={styles.avatarFallback}>
-                  <Text style={styles.avatarInitial}>{player.name[0]}</Text>
-                </View>
-              )}
-              <Text style={styles.topName}>{player.name}</Text>
-              <Text style={styles.topScore}>{player.score} ⚽️</Text>
-              <Text style={styles.trophy}>
-                {medals[index]} #{index + 1}
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
-      </View>
+      <Podium players={topPlayers} />
 
       {/* Divider */}
       {otherPlayers.length > 0 && (
