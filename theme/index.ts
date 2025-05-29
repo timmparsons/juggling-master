@@ -1,4 +1,6 @@
-export const PADDING = {
+import { ViewStyle } from 'react-native';
+
+export const PADDING: ViewStyle = {
   paddingLeft: 20,
   paddingTop: 20,
   paddingRight: 20,

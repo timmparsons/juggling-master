@@ -25,7 +25,7 @@ const Podium = ({ players, onPlayerPress }) => {
           <Text style={styles.podiumLabel}>2</Text>
         </View>
         <Image
-          source={require('@/assets/images/soccer-ball-icon.png')}
+          source={require('@/assets/images/soccer-ball.png')}
           style={styles.avatarSmall}
         />
         <Text style={styles.name}>{second?.name}</Text>
@@ -43,7 +43,7 @@ const Podium = ({ players, onPlayerPress }) => {
           <Text style={styles.podiumLabel}>1</Text>
         </View>
         <Image
-          source={require('@/assets/images/soccer-ball-icon.png')}
+          source={require('@/assets/images/soccer-ball.png')}
           style={styles.avatarLarge}
         />
         <Text style={styles.name}>{first?.name}</Text>
@@ -61,7 +61,7 @@ const Podium = ({ players, onPlayerPress }) => {
           <Text style={styles.podiumLabel}>3</Text>
         </View>
         <Image
-          source={require('@/assets/images/soccer-ball-icon.png')}
+          source={require('@/assets/images/soccer-ball.png')}
           style={styles.avatarSmall}
         />
         <Text style={styles.name}>{third?.name}</Text>
