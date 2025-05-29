@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    ...TYPOGRAPHY.header,
+    ...TYPOGRAPHY.h1,
     fontSize: 28,
     fontWeight: '600',
     color: '#1A5F1A',

@@ -6,7 +6,7 @@ export default function Layout() {
     <SupabaseProvider>
       <Stack>
         <Stack.Screen name='index' options={{ headerShown: false }} />
-        <Stack.Screen name='challenge' options={{ headerShown: false }} />
+        <Stack.Screen name='tabs/challenge' options={{ headerShown: false }} />
         <Stack.Screen name='leaderboard' options={{ headerShown: false }} />
         <Stack.Screen name='pages/Profile' options={{ headerShown: false }} />
         <Stack.Screen name='signin' options={{ headerShown: false }} />

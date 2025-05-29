@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,15 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { supabase } from '../../supabaseClient';
+import { useSupabase } from '../../contexts/SupabaseContext';
 import { PADDING, TYPOGRAPHY } from '../../theme';
 import Header from '../../components/Header/index';
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
+  const { session } = useSupabase();
+  const [isPaidUser, setIsPaidUser] = useState(false);
   const bounceValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -35,11 +39,28 @@ const HomeScreen: React.FC = () => {
     ).start();
   }, [bounceValue]);
 
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (session) {
+        const { data: user } = await supabase
+          .from('users')
+          .select('subscription_status')
+          .eq('id', session.user.id)
+          .single();
+        setIsPaidUser(
+          user?.subscription_status === 'monthly' ||
+            user?.subscription_status === 'yearly'
+        );
+      }
+    };
+    checkSubscription();
+  }, [session]);
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <View style={styles.headerRow}>
-          {/* <Header /> */}
+          <Header />
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => router.push('/pages/Profile')}
@@ -72,6 +93,14 @@ const HomeScreen: React.FC = () => {
         >
           <Text style={styles.buttonText}>View Leaderboard</Text>
         </TouchableOpacity>
+        {isPaidUser && (
+          <TouchableOpacity
+            style={[styles.button, styles.teamButton]}
+            onPress={() => router.push('/teams')}
+          >
+            <Text style={styles.buttonText}>Your Team</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -108,7 +137,7 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.header,
     fontSize: 28,
     fontWeight: '600',
-    color: '#1A5F1A', // Green for soccer theme
+    color: '#1A5F1A',
     textAlign: 'center',
     marginVertical: 8,
   },
@@ -116,8 +145,8 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     fontSize: 16,
     color: '#333',
-    textAlign: 'center',
     marginBottom: 20,
+    textAlign: 'center',
   },
   soccerBall: {
     width: 120,
@@ -145,7 +174,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   secondaryButton: {
-    backgroundColor: '#FF9F0A', // Orange for secondary button
+    backgroundColor: '#FF9F0A',
+  },
+  teamButton: {
+    backgroundColor: '#666',
   },
   buttonText: {
     ...TYPOGRAPHY.body,
