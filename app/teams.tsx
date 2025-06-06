@@ -22,7 +22,7 @@ const TeamScreen: React.FC = () => {
 
   useEffect(() => {
     if (!session) {
-      router.replace('/signin');
+      router.push('/signin');
       return;
     }
 
@@ -111,7 +111,9 @@ const TeamScreen: React.FC = () => {
           <Text style={styles.teamName}>{userTeam.name}</Text>
           <TouchableOpacity
             style={styles.viewLeaderboardButton}
-            onPress={() => router.push(`/leaderboard?teamId=${userTeam.id}`)}
+            onPress={() =>
+              router.push(`/(tabs)/leaderboard?teamId=${userTeam.id}`)
+            }
           >
             <Text style={styles.buttonText}>View Team Leaderboard</Text>
           </TouchableOpacity>

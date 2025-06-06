@@ -6,7 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useSearchParams } from 'expo-router';
 import { supabase } from '../supabaseClient';
 import { useSupabase } from '../contexts/SupabaseContext';
 import { PADDING, TYPOGRAPHY } from '../theme';
@@ -14,14 +14,14 @@ import { PADDING, TYPOGRAPHY } from '../theme';
 const LeaderboardScreen: React.FC = () => {
   const { session } = useSupabase();
   const router = useRouter();
-  const { teamId } = useLocalSearchParamsr();
+  const { teamId } = useSearchParams();
   const [leaderboard, setLeaderboard] = useState([]);
   const [hasAccess, setHasAccess] = useState(false);
   const [viewMode, setViewMode] = useState<'global' | 'team'>('global');
 
   useEffect(() => {
     if (!session) {
-      router.replace('/signin');
+      router.push('/signin');
       return;
     }
 
@@ -99,11 +99,11 @@ const LeaderboardScreen: React.FC = () => {
       </View>
       <FlatList
         data={leaderboard}
-        keyExtractor={(item) => item.id?.toString()}
+        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
         renderItem={({ item, index }) => (
           <View style={styles.item}>
             <Text style={styles.rank}>{index + 1}</Text>
-            <Text style={styles.name}>{item.users?.name}</Text>
+            <Text style={styles.name}>{item.users?.name || 'Unknown'}</Text>
             <Text style={styles.score}>{item.score}</Text>
           </View>
         )}
@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
     alignSelf: 'center',
-    marginBottom: 12,
   },
   buttonText: {
     ...TYPOGRAPHY.body,
@@ -174,7 +173,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: '#F5F5F5F5',
+    backgroundColor: '#F5F5F5',
     borderRadius: 8,
     marginBottom: 8,
   },

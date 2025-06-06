@@ -12,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { supabase } from '../../supabaseClient';
 import { useSupabase } from '../../contexts/SupabaseContext';
 import { PADDING, TYPOGRAPHY } from '../../theme';
-import Header from '../../components/Header/index';
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();
@@ -59,22 +58,13 @@ const HomeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <View style={styles.headerRow}>
-          <Header />
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => router.push('/pages/Profile')}
-          >
-            <Text style={styles.profileButtonText}>👤</Text>
-          </TouchableOpacity>
-        </View>
         <Text style={styles.title}>Hey Tim, let's get juggling! ⚽</Text>
         <Text style={styles.subtitle}>
           Master your soccer skills with fun challenges!
         </Text>
       </View>
       <Animated.Image
-        source={{ uri: 'https://via.placeholder.com/120?text=Soccer+Ball' }}
+        source={require('../../assets/images/soccer-ball.png')}
         style={[
           styles.soccerBall,
           { transform: [{ translateY: bounceValue }] },
@@ -83,13 +73,13 @@ const HomeScreen: React.FC = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.push('/challenge')}
+          onPress={() => router.push('./juggle')}
         >
           <Text style={styles.buttonText}>Start Juggling Session</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
-          onPress={() => router.push('/leaderboard')}
+          onPress={() => router.push('/(tabs)/leaderboard')}
         >
           <Text style={styles.buttonText}>View Leaderboard</Text>
         </TouchableOpacity>
@@ -116,23 +106,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 60,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  profileButton: {
-    backgroundColor: '#1A5F1A',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileButtonText: {
-    fontSize: 20,
-  },
   title: {
     ...TYPOGRAPHY.header,
     fontSize: 28,
@@ -145,8 +118,8 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     fontSize: 16,
     color: '#333',
-    marginBottom: 20,
     textAlign: 'center',
+    marginBottom: 20,
   },
   soccerBall: {
     width: 120,

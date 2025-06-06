@@ -21,7 +21,7 @@ const SignInScreen: React.FC = () => {
       password,
     });
     if (error) alert(error.message);
-    else router.replace('/');
+    else router.push('/(tabs)/index');
   };
 
   const handleSignUp = async () => {
@@ -37,7 +37,7 @@ const SignInScreen: React.FC = () => {
             subscription_status: 'free',
           },
         ]);
-      router.replace('/');
+      router.push('/(tabs)/index');
     }
   };
 

@@ -1,282 +1,322 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
+  TextInput,
   Modal,
-  ScrollView,
-  SafeAreaView,
-  Animated,
-  Easing,
-  Image,
+  StyleSheet,
+  Alert,
 } from 'react-native';
-import ConfettiCannon from 'react-native-confetti-cannon';
+import { useSupabase } from '../../contexts/SupabaseContext';
+import { supabase } from '../../supabaseClient';
+import { useRouter } from 'expo-router';
 import { PADDING, TYPOGRAPHY } from '../../theme';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 const JuggleScreen: React.FC = () => {
-  const [timer, setTimer] = useState<number>(60); // Default 1 minute
-  const [duration, setDuration] = useState<number>(60);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [showConfetti, setShowConfetti] = useState<boolean>(false);
-  const [showPicker, setShowPicker] = useState<boolean>(false);
-  const confettiRef = useRef<any>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
-  const bounceValue = useRef(new Animated.Value(0)).current;
+  const { session } = useSupabase();
+  const router = useRouter();
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [isRunning, setIsRunning] = useState(false);
+  const [score, setScore] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [confetti, setConfetti] = useState(false);
 
   useEffect(() => {
-    if (isRunning && timer > 0) {
-      countdownRef.current = setTimeout(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (timer === 0 && isRunning) {
-      setIsRunning(false);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-      alert("Time's up! Record your juggles.");
+    console.log('JuggleScreen state:', {
+      timeLeft,
+      isRunning,
+      modalVisible,
+      score,
+      session: !!session,
+    });
+
+    if (!session) {
+      console.log('No session, redirecting to signin');
+      router.push('/signin');
+      return;
     }
-    return () => {
-      if (countdownRef.current) clearTimeout(countdownRef.current);
-    };
-  }, [isRunning, timer]);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(bounceValue, {
-          toValue: -10,
-          duration: 500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bounceValue, {
-          toValue: 0,
-          duration: 500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [bounceValue]);
+    let timer: NodeJS.Timeout;
+    if (isRunning && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          console.log('Timer tick:', prev - 1);
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (timeLeft === 0 && isRunning) {
+      console.log('Timer ended, showing modal');
+      setIsRunning(false);
+      setModalVisible(true);
+    }
+    return () => clearInterval(timer);
+  }, [isRunning, timeLeft, session, router]);
 
-  const handleStart = () => {
-    setTimer(duration);
+  const startTimer = () => {
+    console.log('Starting timer');
     setIsRunning(true);
+    setTimeLeft(60);
+    setConfetti(false);
   };
 
-  const handlePause = () => setIsRunning(false);
-
-  const handleReset = () => {
+  const stopTimer = () => {
+    console.log('Stopping timer');
     setIsRunning(false);
-    setTimer(duration);
-    setShowConfetti(false);
+    setModalVisible(true);
   };
 
-  const minutes = Math.floor(timer / 60)
-    .toString()
-    .padStart(2, '0');
-  const seconds = (timer % 60).toString().padStart(2, '0');
+  const openScoreInput = () => {
+    console.log('Opening score input modal');
+    setModalVisible(true);
+  };
+
+  const handleScoreSubmit = async () => {
+    console.log('Submitting score:', score);
+    if (!score || isNaN(Number(score)) || Number(score) < 0) {
+      Alert.alert('Invalid Score', 'Please enter a valid number.');
+      return;
+    }
+
+    const scoreValue = Number(score);
+    try {
+      await supabase.from('timer_sessions').insert([
+        {
+          user_id: session?.user.id,
+          duration: isRunning || timeLeft < 60 ? 60 - timeLeft : 0, // 0 for manual entry
+          score: scoreValue,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      const { data: currentHighScore } = await supabase
+        .from('leaderboard')
+        .select('score')
+        .eq('user_id', session?.user.id)
+        .single();
+
+      const currentScore = currentHighScore?.score || 0;
+
+      if (scoreValue > currentScore) {
+        await supabase.from('leaderboard').upsert([
+          {
+            user_id: session?.user.id,
+            score: scoreValue,
+            team_id: null,
+          },
+        ]);
+        setConfetti(true);
+        Alert.alert(
+          'New High Score!',
+          `You've set a new personal best: ${scoreValue}!`
+        );
+      }
+
+      setModalVisible(false);
+      setScore('');
+      setTimeLeft(60);
+    } catch (error) {
+      console.error('Score submission error:', error);
+      Alert.alert('Error', 'Failed to save score. Try again.');
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.header}>Ready to Juggle?</Text>
-        <View style={styles.timerContainer}>
-          <Animated.Image
-            source={{ uri: 'https://via.placeholder.com/80?text=Soccer+Ball' }}
-            style={[
-              styles.soccerBall,
-              { transform: [{ translateY: bounceValue }] },
-            ]}
-          />
-          <Text style={styles.timerText}>{`${minutes}:${seconds}`}</Text>
-        </View>
-        <View style={styles.buttonRow}>
-          {isRunning ? (
-            <TouchableOpacity onPress={handlePause} style={styles.pauseButton}>
-              <Text style={styles.buttonText}>Pause</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={handleStart} style={styles.startButton}>
-              <Text style={styles.buttonText}>Start</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={handleReset} style={styles.resetButton}>
-            <Text style={styles.buttonText}>Reset</Text>
+    <View style={styles.container}>
+      {confetti && <ConfettiCannon count={200} origin={{ x: -10, y: 0 }} />}
+      <Text style={styles.header}>Juggle Challenge ⚽</Text>
+      <Text style={styles.timer}>{formatTime(timeLeft)}</Text>
+      {!isRunning ? (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={startTimer}>
+            <Text style={styles.buttonText}>Start Session</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setShowPicker(true)}
-            style={styles.editButton}
+            style={[styles.button, styles.inputScoreButton]}
+            onPress={openScoreInput}
           >
-            <Text style={styles.buttonText}>Set Time</Text>
+            <Text style={styles.buttonText}>Input New Score</Text>
           </TouchableOpacity>
         </View>
-        <Modal visible={showPicker} transparent animationType='slide'>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Pick Your Time</Text>
-              <ScrollView
-                style={styles.pickerScroll}
-                showsVerticalScrollIndicator={false}
-              >
-                {[...Array(31)].map((_, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.pickerItemContainer}
-                    onPress={() => {
-                      const newTime = i * 60 || 60; // Default to 60s if 0
-                      setDuration(newTime);
-                      setTimer(newTime);
-                      setShowPicker(false);
-                    }}
-                  >
-                    <Text style={styles.pickerItem}>{i} min</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+      ) : (
+        <TouchableOpacity
+          style={[styles.button, styles.stopButton]}
+          onPress={stopTimer}
+        >
+          <Text style={styles.buttonText}>Stop</Text>
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType='slide'
+        onRequestClose={() => {
+          console.log('Modal close requested');
+          setModalVisible(false);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>Session Complete!</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter your score (number of juggles):
+            </Text>
+            <TextInput
+              style={styles.input}
+              value={score}
+              onChangeText={(text) => {
+                console.log('Score input changed:', text);
+                setScore(text);
+              }}
+              keyboardType='numeric'
+              placeholder='Enter score'
+              placeholderTextColor='#555'
+              autoFocus={true}
+              testID='score-input'
+            />
+            <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={styles.cancelModalButton}
-                onPress={() => setShowPicker(false)}
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  console.log('Cancel pressed');
+                  setModalVisible(false);
+                  setScore('');
+                  setTimeLeft(60);
+                }}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleScoreSubmit}
+              >
+                <Text style={styles.modalButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
-        {showConfetti && (
-          <ConfettiCannon
-            count={100}
-            origin={{ x: -10, y: 0 }}
-            fadeOut
-            fallSpeed={3000}
-            explosionSpeed={400}
-            autoStart
-            ref={confettiRef}
-          />
-        )}
-      </View>
-    </SafeAreaView>
+        </View>
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     ...PADDING,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     ...TYPOGRAPHY.header,
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#1A5F1A', // Green for soccer theme
-    marginBottom: 24,
+    color: '#1A5F1A',
+    marginBottom: 20,
   },
-  timerContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  soccerBall: {
-    width: 80,
-    height: 80,
-    marginBottom: 12,
-  },
-  timerText: {
+  timer: {
     ...TYPOGRAPHY.title,
     fontSize: 48,
     fontWeight: 'bold',
     color: '#1A5F1A',
+    marginBottom: 20,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    marginTop: 24,
+  buttonContainer: {
+    width: '80%',
     gap: 12,
   },
-  startButton: {
+  button: {
     backgroundColor: '#1A5F1A',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
     borderRadius: 10,
-    minWidth: 100,
+    width: '100%',
     alignItems: 'center',
   },
-  pauseButton: {
+  inputScoreButton: {
     backgroundColor: '#FF9F0A',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
   },
-  resetButton: {
+  stopButton: {
     backgroundColor: '#FF3B30',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  editButton: {
-    backgroundColor: '#666',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    minWidth: 100,
-    alignItems: 'center',
+    width: '80%',
   },
   buttonText: {
     ...TYPOGRAPHY.body,
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 15,
     padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '50%',
+    width: '90%',
+    alignItems: 'center',
   },
-  modalTitle: {
-    ...TYPOGRAPHY.title,
-    fontSize: 20,
+  modalHeader: {
+    ...TYPOGRAPHY.header,
+    fontSize: 24,
     fontWeight: '600',
     color: '#1A5F1A',
+    marginBottom: 12,
+  },
+  modalSubtitle: {
+    ...TYPOGRAPHY.body,
+    fontSize: 16,
+    color: '#333',
     marginBottom: 16,
     textAlign: 'center',
   },
-  pickerScroll: {
-    maxHeight: 200,
-  },
-  pickerItemContainer: {
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  pickerItem: {
-    ...TYPOGRAPHY.body,
-    fontSize: 18,
+  input: {
+    width: '80%',
+    height: 48,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#1A5F1A',
+    borderRadius: 8,
+    marginBottom: 20,
+    fontSize: 16,
     color: '#333',
+    backgroundColor: '#F5F5F5',
+    textAlign: 'center',
   },
-  cancelModalButton: {
-    backgroundColor: '#FF3B30',
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+  },
+  modalButton: {
+    backgroundColor: '#1A5F1A',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,
+    flex: 1,
     alignItems: 'center',
-    marginTop: 16,
+    marginHorizontal: 8,
+  },
+  cancelButton: {
+    backgroundColor: '#FF3B30',
+  },
+  modalButtonText: {
+    ...TYPOGRAPHY.body,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

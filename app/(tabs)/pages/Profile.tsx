@@ -7,20 +7,24 @@ import {
   Animated,
   Easing,
   Image,
+  Alert,
 } from 'react-native';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 import { useRouter } from 'expo-router';
-import { PADDING, TYPOGRAPHY } from '../../theme';
+import { useSupabase } from '../../../contexts/SupabaseContext';
+import { PADDING, TYPOGRAPHY } from '../../../theme';
 
 const ProfileScreen: React.FC = () => {
+  const { session } = useSupabase();
+  const router = useRouter();
   const [user, setUser] = useState({
     name: 'Tim',
     totalJuggles: 150,
+    highScore: 0,
     sessionsCompleted: 10,
-    avatar: 'https://via.placeholder.com/100?text=Soccer+Ball',
+    avatar: require('../../../assets/images/soccer-ball.png'),
   });
   const [team, setTeam] = useState(null);
-  const router = useRouter();
   const spinValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -36,6 +40,10 @@ const ProfileScreen: React.FC = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      if (!session) {
+        router.push('/signin');
+        return;
+      }
       const {
         data: { user: authUser },
       } = await supabase.auth.getUser();
@@ -49,13 +57,20 @@ const ProfileScreen: React.FC = () => {
           .from('timer_sessions')
           .select('duration')
           .eq('user_id', authUser.id);
+        let { data: leaderboard, error } = await supabase
+          .from('leaderboard')
+          .select('score')
+          .eq('user_id', authUser.id)
+          .single();
         const totalJuggles =
           sessions?.reduce((sum, s) => sum + s.duration, 0) || 0;
+        console.log('QQQ ', leaderboard.score);
         setUser({
           name: userData?.name || authUser.email || 'User',
+          highScore: leaderboard?.score,
           totalJuggles,
           sessionsCompleted: sessions?.length || 0,
-          avatar: user.avatar,
+          avatar: require('../../../assets/images/soccer-ball.png'),
         });
 
         const { data: membership } = await supabase
@@ -71,15 +86,28 @@ const ProfileScreen: React.FC = () => {
       }
     };
     fetchUserData();
-  }, []);
+  }, [session, router]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  const handleEditProfile = () => {
-    alert('Edit Profile coming soon!');
+  // const handleEditProfile = () => {
+  //   Alert.alert('Edit Profile', 'Edit Profile coming soon!');
+  // };
+
+  const handleLogout = async () => {
+    try {
+      console.log('Logging out user:', session?.user.id);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      console.log('Logout successful, redirecting to signin');
+      router.replace('/signin');
+    } catch (error) {
+      console.error('Logout error:', error);
+      Alert.alert('Error', 'Failed to log out. Please try again.');
+    }
   };
 
   return (
@@ -87,12 +115,18 @@ const ProfileScreen: React.FC = () => {
       <Text style={styles.header}>Your Profile</Text>
       <View style={styles.profileCard}>
         <Animated.Image
-          source={{ uri: user.avatar }}
+          source={user.avatar}
           style={[styles.avatar, { transform: [{ rotate: spin }] }]}
         />
         <Text style={styles.name}>{user.name}</Text>
         {team && <Text style={styles.team}>Team: {team.name}</Text>}
         <View style={styles.statsContainer}>
+          <View style={{}}>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{user.highScore}</Text>
+              <Text style={styles.statLabel}>High Score</Text>
+            </View>
+          </View>
           <View style={styles.stat}>
             <Text style={styles.statValue}>{user.totalJuggles}</Text>
             <Text style={styles.statLabel}>Total Juggles</Text>
@@ -102,16 +136,22 @@ const ProfileScreen: React.FC = () => {
             <Text style={styles.statLabel}>Sessions Completed</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+        {/* <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
           <Text style={styles.buttonText}>Edit Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.teamButton}
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
+          style={[styles.button, styles.teamButton]}
           onPress={() => router.push('/teams')}
         >
           <Text style={styles.buttonText}>
             {team ? 'Manage Team' : 'Join a Team'}
           </Text>
+        </TouchableOpacity> */}
+        <TouchableOpacity
+          style={[styles.button, styles.logoutButton]}
+          onPress={handleLogout}
+        >
+          <Text style={styles.buttonText}>Log Out</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -129,11 +169,11 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.header,
     fontSize: 28,
     fontWeight: '600',
-    color: '#1A5F1A',
+    color: '#333',
     marginVertical: 20,
   },
   profileCard: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#fff',
     borderRadius: 15,
     padding: 20,
     alignItems: 'center',
@@ -148,13 +188,13 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 12,
+    marginBottom: 2,
   },
   name: {
-    ...TYPOGRAPHY.header,
+    ...TYPOGRAPHY.title,
     fontSize: 24,
     fontWeight: '600',
-    color: '#1A5F1A',
+    color: '#333',
     marginBottom: 8,
   },
   team: {
@@ -183,22 +223,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  editButton: {
+  button: {
     backgroundColor: '#1A5F1A',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,
-    width: '60%',
+    width: '80%',
     alignItems: 'center',
     marginBottom: 12,
   },
+  editButton: {
+    backgroundColor: '#1A5f1A',
+  },
   teamButton: {
     backgroundColor: '#FF9F0A',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 10,
-    width: '60%',
-    alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
   },
   buttonText: {
     ...TYPOGRAPHY.body,
